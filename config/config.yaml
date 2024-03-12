@@ -1,0 +1,9 @@
+images:
+  imagePath: "/images"
+rootfs:
+  rootfsPath: "/rootfs"
+  workLayerPath: "/rootfs/work"
+  upperLayerPath: "/rootfs/upper"
+  mntPath: "/rootfs/mnt"
+  mntOldPath: ".old"
+version: "0.0.1"
