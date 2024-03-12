@@ -33,6 +33,9 @@ func Init() error {
 	if err != nil {
 		return err
 	}
+	if file == nil {
+		return fmt.Errorf("config file not found")
+	}
 	err = yaml.Unmarshal(file, &Cfg)
 	if err != nil {
 		return err

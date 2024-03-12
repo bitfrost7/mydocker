@@ -16,6 +16,11 @@ import (
  3. version 命令
 */
 func main() {
+	// 初始化配置
+	if err := config.Init(); err != nil {
+		fmt.Printf("Failed to init config: %s\n", err.Error())
+		os.Exit(1)
+	}
 	var rootCmd = &cobra.Command{
 		Use:   "mydocker",
 		Short: "mydocker is a simple container runtime implementation",
