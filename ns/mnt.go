@@ -14,7 +14,9 @@ type OverlayFs struct {
 	MergeDir string
 }
 
-func createOverlayFs(fs *OverlayFs) error {
+var fs *OverlayFs
+
+func createOverlayFs() error {
 	if err := os.MkdirAll(fs.UpperDir, 0777); err != nil {
 		return err
 	}
@@ -24,8 +26,8 @@ func createOverlayFs(fs *OverlayFs) error {
 	if err := os.MkdirAll(fs.MergeDir, 0777); err != nil {
 		return err
 	}
-	data := fmt.Sprintf("lowerdir=%s,upperdir=%s,workdir=%s", fs.LowerDir, fs.UpperDir, fs.WorkDir)
-	if err := syscall.Mount("overlay", fs.MergeDir, "overlay", 0, data); err != nil {
+	mntInfo := fmt.Sprintf("lowerdir=%s,upperdir=%s,workdir=%s", fs.LowerDir, fs.UpperDir, fs.WorkDir)
+	if err := syscall.Mount("overlay", fs.MergeDir, "overlay", 0, mntInfo); err != nil {
 		return fmt.Errorf("mount overlay fail err=%s", err)
 	}
 	if err := syscall.Mount("", "/", "", syscall.MS_PRIVATE|syscall.MS_REC, ""); err != nil {
@@ -37,8 +39,8 @@ func createOverlayFs(fs *OverlayFs) error {
 	return nil
 }
 
-func Chroot(path string) error {
-	if err := syscall.Chroot(path); err != nil {
+func Chroot() error {
+	if err := syscall.Chroot(fs.MergeDir); err != nil {
 		return fmt.Errorf("chroot fail err=%s", err)
 	}
 	if err := syscall.Chdir("/"); err != nil {
@@ -48,22 +50,22 @@ func Chroot(path string) error {
 }
 
 func InitMntNameSpace(imageName, containerName string) error {
-	overlayFs := &OverlayFs{
+	fs = &OverlayFs{
 		LowerDir: config.Cfg.Images.ImagePath + "/" + imageName,
 		UpperDir: config.Cfg.RootFs.UpperLayerPath + "/" + containerName,
 		WorkDir:  config.Cfg.RootFs.WorkLayerPath + "/" + containerName,
 		MergeDir: config.Cfg.RootFs.MntPath + "/" + containerName,
 	}
-	if err := createOverlayFs(overlayFs); err != nil {
+	if err := createOverlayFs(); err != nil {
 		return err
 	}
-	if err := Chroot(overlayFs.MergeDir); err != nil {
+	if err := Chroot(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func delOverlayFs(fs *OverlayFs) error {
+func DeleteMntNameSpace() error {
 	if err := syscall.Unmount(fs.MergeDir, syscall.MNT_DETACH); err != nil {
 		return fmt.Errorf("unmount overlay fail err=%s", err)
 	}
@@ -74,18 +76,6 @@ func delOverlayFs(fs *OverlayFs) error {
 		return err
 	}
 	if err := os.RemoveAll(fs.MergeDir); err != nil {
-		return err
-	}
-	return nil
-}
-
-func DeleteMntNameSpace(containerName string) error {
-	overlayFs := &OverlayFs{
-		UpperDir: config.Cfg.RootFs.UpperLayerPath + "/" + containerName,
-		WorkDir:  config.Cfg.RootFs.WorkLayerPath + "/" + containerName,
-		MergeDir: config.Cfg.RootFs.MntPath + "/" + containerName,
-	}
-	if err := delOverlayFs(overlayFs); err != nil {
 		return err
 	}
 	return nil

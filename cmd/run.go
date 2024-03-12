@@ -9,8 +9,9 @@ import (
 )
 
 var RunCmd = &cobra.Command{
-	Use:   "run",
-	Short: "run a container",
+	Use:                "run",
+	Short:              "run a container",
+	DisableFlagParsing: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		RunContainer()
 	},
@@ -26,11 +27,9 @@ func RunContainer() {
 	fmt.Println("command args:", os.Args)
 	cmd := exec.Command(initCmd, os.Args[1:]...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Cloneflags: syscall.CLONE_NEWUTS | // 时间和主机名隔离
-			syscall.CLONE_NEWPID | // 进程隔离
-			syscall.CLONE_NEWNS | // 挂载点隔离
-			syscall.CLONE_NEWNET | // 网络隔离
-			syscall.CLONE_NEWIPC, // 信号量和消息队列隔离
+		Cloneflags: syscall.CLONE_NEWUTS |
+			syscall.CLONE_NEWPID | syscall.CLONE_NEWNS |
+			syscall.CLONE_NEWNET | syscall.CLONE_NEWIPC,
 	}
 	cmd.Env = os.Environ()
 	cmd.Stdin = os.Stdin

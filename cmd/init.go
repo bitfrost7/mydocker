@@ -14,7 +14,12 @@ var InitCmd = &cobra.Command{
 	Short: "init a container",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		imageName = args[0]
+		command = args[1:]
 		InitContainer()
+	},
+	PostRun: func(cmd *cobra.Command, args []string) {
+		ClearContainer()
 	},
 }
 var (
@@ -24,6 +29,7 @@ var (
 	tty           bool
 	detach        bool
 	port          int
+	command       []string
 )
 
 func init() {
@@ -48,13 +54,20 @@ func InitContainer() {
 }
 
 func ExecContainer() {
-	cmd := os.Args[3]
-	fmt.Println("will exec cmd=", cmd)
-	err := syscall.Exec(cmd, os.Args[3:], os.Environ())
+	fmt.Println("will exec cmd=", command)
+	err := syscall.Exec(command[0], command, os.Environ())
 	if err != nil {
 		fmt.Println("exec proc fail ", err)
 		return
 	}
 	fmt.Println("forever exec it ")
 	return
+}
+
+func ClearContainer() {
+	fmt.Println("clear container")
+	if err := ns.DeleteMntNameSpace(); err != nil {
+		fmt.Println("delete mnt namespace fail ", err)
+		return
+	}
 }
