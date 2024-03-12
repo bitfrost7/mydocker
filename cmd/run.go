@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"mydocker/ns"
 	"os"
 	"os/exec"
 	"syscall"
@@ -14,6 +15,14 @@ var RunCmd = &cobra.Command{
 	DisableFlagParsing: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		RunContainer()
+	},
+	PostRun: func(cmd *cobra.Command, args []string) {
+		for i, arg := range args {
+			if arg == "-n" || arg == "--name" {
+				ClearContainer(args[i+1])
+				break
+			}
+		}
 	},
 }
 
@@ -41,4 +50,13 @@ func RunContainer() {
 	}
 	fmt.Println("init proc end", initCmd)
 	return
+}
+
+// ClearContainer 清理容器
+func ClearContainer(containerName string) {
+	fmt.Println("clear container")
+	if err := ns.DeleteMntNameSpace(containerName); err != nil {
+		fmt.Println("delete mnt namespace fail ", err)
+		return
+	}
 }

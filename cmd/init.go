@@ -17,9 +17,7 @@ var InitCmd = &cobra.Command{
 		imageName = args[0]
 		command = args[1:]
 		InitContainer()
-	},
-	PostRun: func(cmd *cobra.Command, args []string) {
-		ClearContainer()
+		ExecContainer()
 	},
 }
 var (
@@ -45,12 +43,10 @@ func InitContainer() {
 		fmt.Println("create mnt namespace fail ", err)
 		return
 	}
-
 	if err := ns.MountProc(); err != nil {
 		fmt.Println("mount proc fail ", err)
 		return
 	}
-	ExecContainer()
 }
 
 func ExecContainer() {
@@ -62,12 +58,4 @@ func ExecContainer() {
 	}
 	fmt.Println("forever exec it ")
 	return
-}
-
-func ClearContainer() {
-	fmt.Println("clear container")
-	if err := ns.DeleteMntNameSpace(); err != nil {
-		fmt.Println("delete mnt namespace fail ", err)
-		return
-	}
 }

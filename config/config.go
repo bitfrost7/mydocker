@@ -18,7 +18,7 @@ type RootFsConfig struct {
 	RootFsPath     string `yaml:"rootfsPath"`
 	WorkLayerPath  string `yaml:"workLayerPath"`
 	UpperLayerPath string `yaml:"upperLayerPath"`
-	MntPath        string `yaml:"mntPath"`
+	MntPath        string `yaml:"mntLayerPath"`
 	MntOldPath     string `yaml:"mntOldPath"`
 }
 

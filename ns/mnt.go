@@ -14,9 +14,40 @@ type OverlayFs struct {
 	MergeDir string
 }
 
-var fs *OverlayFs
+// GetOverlayFs 获取overlay文件系统
+func GetOverlayFs(imageName, containerName string) *OverlayFs {
+	return &OverlayFs{
+		LowerDir: config.Cfg.Images.ImagePath + "/" + imageName,
+		UpperDir: config.Cfg.RootFs.UpperLayerPath + "/" + containerName,
+		WorkDir:  config.Cfg.RootFs.WorkLayerPath + "/" + containerName,
+		MergeDir: config.Cfg.RootFs.MntPath + "/" + containerName,
+	}
+}
 
-func createOverlayFs() error {
+// InitMntNameSpace 初始化mnt namespace
+func InitMntNameSpace(imageName, containerName string) error {
+	fs := GetOverlayFs(imageName, containerName)
+	if err := fs.create(); err != nil {
+		return err
+	}
+	if err := fs.chroot(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeleteMntNameSpace 删除mnt namespace
+func DeleteMntNameSpace(containerName string) error {
+	fs := GetOverlayFs("", containerName)
+	fmt.Println("fs", fs)
+	if err := fs.destroy(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// create 创建overlay文件系统
+func (fs *OverlayFs) create() error {
 	if err := os.MkdirAll(fs.UpperDir, 0777); err != nil {
 		return err
 	}
@@ -39,7 +70,8 @@ func createOverlayFs() error {
 	return nil
 }
 
-func Chroot() error {
+// chroot 切换根目录
+func (fs *OverlayFs) chroot() error {
 	if err := syscall.Chroot(fs.MergeDir); err != nil {
 		return fmt.Errorf("chroot fail err=%s", err)
 	}
@@ -49,23 +81,8 @@ func Chroot() error {
 	return nil
 }
 
-func InitMntNameSpace(imageName, containerName string) error {
-	fs = &OverlayFs{
-		LowerDir: config.Cfg.Images.ImagePath + "/" + imageName,
-		UpperDir: config.Cfg.RootFs.UpperLayerPath + "/" + containerName,
-		WorkDir:  config.Cfg.RootFs.WorkLayerPath + "/" + containerName,
-		MergeDir: config.Cfg.RootFs.MntPath + "/" + containerName,
-	}
-	if err := createOverlayFs(); err != nil {
-		return err
-	}
-	if err := Chroot(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func DeleteMntNameSpace() error {
+// destroy 销毁overlay文件系统
+func (fs *OverlayFs) destroy() error {
 	if err := syscall.Unmount(fs.MergeDir, syscall.MNT_DETACH); err != nil {
 		return fmt.Errorf("unmount overlay fail err=%s", err)
 	}
