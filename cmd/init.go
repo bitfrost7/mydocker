@@ -10,19 +10,30 @@ import (
 )
 
 var InitCmd = &cobra.Command{
-	Use: "init",
+	Use:   "init [imageName]",
+	Short: "init a container",
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		InitContainer()
 	},
 }
+var (
+	containerName string
+	imageName     string
+	interactive   bool
+	tty           bool
+	detach        bool
+	port          int
+)
 
 func init() {
-	InitCmd.Flags().StringVarP(&containerName, "name", "", tools.GenerateDefaultName(), "container name")
-	InitCmd.Flags().StringVarP(&imageName, "image", "", "", "image name")
+	InitCmd.Flags().StringVarP(&containerName, "name", "n", tools.GenerateDefaultName(), "container name")
 	InitCmd.Flags().BoolVarP(&interactive, "interactive", "i", false, "interactive")
 	InitCmd.Flags().BoolVarP(&tty, "tty", "t", false, "tty")
 	InitCmd.Flags().BoolVarP(&detach, "detach", "d", false, "detach")
+	InitCmd.Flags().IntVarP(&port, "port", "p", 8000, "port")
 }
+
 func InitContainer() {
 	if err := ns.InitMntNameSpace(imageName, containerName); err != nil {
 		fmt.Println("create mnt namespace fail ", err)

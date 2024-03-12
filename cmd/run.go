@@ -3,8 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"mydocker/ns"
-	"mydocker/tools"
 	"os"
 	"os/exec"
 	"syscall"
@@ -16,28 +14,8 @@ var RunCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		RunContainer()
 	},
-	PostRun: func(cmd *cobra.Command, args []string) {
-		if err := ns.DeleteMntNameSpace(containerName); err != nil {
-			return
-		}
-	},
 }
-var (
-	containerName string
-	imageName     string
-	interactive   bool
-	tty           bool
-	detach        bool
-	port          string
-)
 
-func init() {
-	RunCmd.Flags().StringVarP(&containerName, "name", "n", tools.GenerateDefaultName(), "container name")
-	RunCmd.Flags().BoolVarP(&interactive, "interactive", "i", false, "interactive")
-	RunCmd.Flags().BoolVarP(&tty, "tty", "t", false, "tty")
-	RunCmd.Flags().BoolVarP(&detach, "detach", "d", false, "detach")
-	RunCmd.MarkFlagRequired("name")
-}
 func RunContainer() {
 	initCmd, err := os.Readlink("/proc/self/exe")
 	if err != nil {
@@ -45,18 +23,22 @@ func RunContainer() {
 		return
 	}
 	os.Args[1] = "init"
+	fmt.Println("command args:", os.Args)
 	cmd := exec.Command(initCmd, os.Args[1:]...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS |
-			syscall.CLONE_NEWNET | syscall.CLONE_NEWIPC,
+		Cloneflags: syscall.CLONE_NEWUTS | // 时间和主机名隔离
+			syscall.CLONE_NEWPID | // 进程隔离
+			syscall.CLONE_NEWNS | // 挂载点隔离
+			syscall.CLONE_NEWNET | // 网络隔离
+			syscall.CLONE_NEWIPC, // 信号量和消息队列隔离
 	}
 	cmd.Env = os.Environ()
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-	if err != nil {
-		fmt.Println(err)
+
+	if cmdErr := cmd.Run(); cmdErr != nil {
+		fmt.Println(cmdErr)
 	}
 	fmt.Println("init proc end", initCmd)
 	return

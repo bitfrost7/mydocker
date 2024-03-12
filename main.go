@@ -26,8 +26,9 @@ func main() {
 	rootCmd.AddCommand(
 		cmd.Version,
 		cmd.RunCmd,
+		cmd.InitCmd,
 	)
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Printf("Failed to run app with %v: %s", os.Args, err.Error())
+		fmt.Printf("Failed to run app with %v: %s\n", os.Args, err.Error())
 	}
 }
