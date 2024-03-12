@@ -20,7 +20,7 @@ func main() {
 		Use:   "mydocker",
 		Short: "mydocker is a simple container runtime implementation",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			config.Init()
+			_ = config.Init()
 		},
 	}
 	rootCmd.AddCommand(
