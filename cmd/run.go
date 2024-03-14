@@ -33,7 +33,6 @@ func RunContainer() {
 		return
 	}
 	os.Args[1] = "init"
-	fmt.Println("command args:", os.Args)
 	cmd := exec.Command(initCmd, os.Args[1:]...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags: syscall.CLONE_NEWUTS |

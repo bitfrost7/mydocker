@@ -19,7 +19,6 @@ type RootFsConfig struct {
 	WorkLayerPath  string `yaml:"workLayerPath"`
 	UpperLayerPath string `yaml:"upperLayerPath"`
 	MntPath        string `yaml:"mntLayerPath"`
-	MntOldPath     string `yaml:"mntOldPath"`
 }
 
 var Cfg *Config
@@ -27,7 +26,7 @@ var Cfg *Config
 func Init() error {
 	pwd, err := os.Getwd()
 	if err != nil {
-		fmt.Errorf("get pwd fail err=%s", err)
+		return fmt.Errorf("get pwd fail err=%s", err)
 	}
 	file, err := os.ReadFile(pwd + "/config/config.yaml")
 	if err != nil {

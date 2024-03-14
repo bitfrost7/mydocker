@@ -5,5 +5,4 @@ rootfs:
   workLayerPath: "/root/mydocker/rootfs/work"
   upperLayerPath: "/root/mydocker/rootfs/upper"
   mntLayerPath: "/root/mydocker/rootfs/mnt"
-  mntOldPath: ".old"
 version: "0.0.1"

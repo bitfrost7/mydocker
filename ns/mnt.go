@@ -39,7 +39,6 @@ func InitMntNameSpace(imageName, containerName string) error {
 // DeleteMntNameSpace 删除mnt namespace
 func DeleteMntNameSpace(containerName string) error {
 	fs := GetOverlayFs("", containerName)
-	fmt.Println("fs", fs)
 	if err := fs.destroy(); err != nil {
 		return err
 	}
@@ -58,6 +57,7 @@ func (fs *OverlayFs) create() error {
 		return err
 	}
 	mntInfo := fmt.Sprintf("lowerdir=%s,upperdir=%s,workdir=%s", fs.LowerDir, fs.UpperDir, fs.WorkDir)
+	fmt.Println(mntInfo)
 	if err := syscall.Mount("overlay", fs.MergeDir, "overlay", 0, mntInfo); err != nil {
 		return fmt.Errorf("mount overlay fail err=%s", err)
 	}
